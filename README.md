@@ -65,3 +65,13 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
 - lint
 - test (placeholder stubs)
 - build
+
+## GitHub Pages Hosting (Frontend)
+
+The web app can auto-deploy to GitHub Pages via:
+- `.github/workflows/deploy-pages.yml`
+
+After enabling **Settings → Pages → Source: GitHub Actions**, the storefront will be available at:
+- `https://artin64.github.io/shopks/`
+
+> Note: GitHub Pages hosts only the static frontend (`apps/web`). The NestJS API requires separate hosting (VPS/Render/Railway/etc.).
