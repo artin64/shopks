@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  fullName    String
+  role        String
+  createdAt   DateTime @default(now())
+  vendors     Vendor[]
+  orders      Order[]
+  reviews     Review[]
+  wishlists   Wishlist[]
+  payments    Payment[]
+}
+
+model Vendor {
+  id            String   @id @default(uuid())
+  ownerId       String
+  name          String
+  slug          String   @unique
+  isApproved    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  owner         User     @relation(fields: [ownerId], references: [id])
+  products      Product[]
+  campaigns     AdsCampaign[]
+  commissions   Commission[]
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  products  Product[]
+}
+
+model Product {
+  id           String         @id @default(uuid())
+  vendorId      String
+  categoryId    String
+  name          String
+  description   String
+  price         Decimal       @db.Decimal(10,2)
+  stock         Int           @default(0)
+  createdAt     DateTime      @default(now())
+  vendor        Vendor        @relation(fields: [vendorId], references: [id])
+  category      Category      @relation(fields: [categoryId], references: [id])
+  images        ProductImage[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+  inventoryLogs InventoryLog[]
+}
+
+model ProductImage {
+  id        String  @id @default(uuid())
+  productId String
+  url       String
+  alt       String?
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id         String      @id @default(uuid())
+  userId     String
+  status     String
+  total      Decimal     @db.Decimal(10,2)
+  createdAt  DateTime    @default(now())
+  user       User        @relation(fields: [userId], references: [id])
+  items      OrderItem[]
+  payment    Payment?
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  productId  String
+  quantity   Int
+  unitPrice  Decimal  @db.Decimal(10,2)
+  order      Order    @relation(fields: [orderId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  userId     String
+  productId  String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+}
+
+model Wishlist {
+  id         String   @id @default(uuid())
+  userId     String
+  productId  String
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model AdsCampaign {
+  id         String   @id @default(uuid())
+  vendorId   String
+  title      String
+  budget     Decimal  @db.Decimal(10,2)
+  status     String
+  startsAt   DateTime
+  endsAt     DateTime
+  vendor     Vendor   @relation(fields: [vendorId], references: [id])
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(uuid())
+  eventType  String
+  actorId    String?
+  entityType String
+  entityId   String
+  payload    Json
+  createdAt  DateTime @default(now())
+}
+
+model InventoryLog {
+  id          String   @id @default(uuid())
+  productId   String
+  delta       Int
+  reason      String
+  createdAt   DateTime @default(now())
+  product     Product  @relation(fields: [productId], references: [id])
+}
+
+model Payment {
+  id         String   @id @default(uuid())
+  userId     String
+  orderId    String   @unique
+  provider   String
+  status     String
+  amount     Decimal  @db.Decimal(10,2)
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  order      Order    @relation(fields: [orderId], references: [id])
+}
+
+model Commission {
+  id         String   @id @default(uuid())
+  vendorId   String
+  rate       Decimal  @db.Decimal(5,2)
+  amount     Decimal  @db.Decimal(10,2)
+  period     String
+  createdAt  DateTime @default(now())
+  vendor     Vendor   @relation(fields: [vendorId], references: [id])
+}
